@@ -21,6 +21,9 @@
     "PF2EMONSTERMAKER.strikeBonus": "Premia do Ataku",
     "PF2EMONSTERMAKER.strikeDamage": "Obrażenia",
     "PF2EMONSTERMAKER.spellcasting": "Rzucanie zaklęć",
+    "PF2EMONSTERMAKER.areaDC": "ST Obszaru",
+    "PF2EMONSTERMAKER.unlimitedUseAreaDamage": "Nieograniczone korzystanie",
+    "PF2EMONSTERMAKER.limitedUseAreaDamage": "Ograniczone korzystanie",
 
     "PF2EMONSTERMAKER.acrobatics": "Akrobatyka",
     "PF2EMONSTERMAKER.arcana": "Arkana",
@@ -42,6 +45,7 @@
     "PF2EMONSTERMAKER.abilityScores": "Atrybuty",
     "PF2EMONSTERMAKER.defencePerception": "Obrona + Percepcja",
     "PF2EMONSTERMAKER.strikes": "Ataki",
+    "PF2EMONSTERMAKER.strikesAndAreaDamage": "Ataki  + Obrażenia obszarowe",
     "PF2EMONSTERMAKER.skills": "Umiejętności",
 
     "PF2EMONSTERMAKER.brute":"Brutalny",
@@ -57,5 +61,6 @@
     "PF2EMONSTERMAKER.low": "Niskie",
     "PF2EMONSTERMAKER.terrible": "Koszmarny",
     "PF2EMONSTERMAKER.abysmal": "Fatalny",
-    "PF2EMONSTERMAKER.none": "Brak"
+    "PF2EMONSTERMAKER.none": "Brak",
+    "PF2EMONSTERMAKER.yes": "Tak"
 }
