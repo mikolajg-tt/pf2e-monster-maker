@@ -72,11 +72,11 @@
     cursor: pointer;
 }
 
-.application.monster-maker .mm-dropdown-popup[data-for="monsterMakerLevel"] {
+.mm-dropdown-popup[data-for="monsterMakerLevel"] {
     max-height: 480px;
 }
 
-.application.monster-maker .mm-dropdown-popup {
+.mm-dropdown-popup {
     position: fixed;
     z-index: calc(var(--z-index-tooltip, 9999) + 1);
     list-style: none;
@@ -85,14 +85,14 @@
     max-height: 260px;
     overflow-y: auto;
     font: inherit;
-    color: var(--color-light-1, #e0e0e0);
-    background: var(--color-cool-5, #324053);
-    border: 1px solid var(--color-cool-3, #5685cf);
+    color: inherit;
+    background: #1c2531;
+    border: 1px solid color-mix(in oklab, currentColor 30%, transparent);
     border-radius: var(--input-border-radius, 3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-.application.monster-maker .mm-dropdown-option {
+.mm-dropdown-option {
     padding: 7px 10px;
     cursor: pointer;
     white-space: nowrap;
@@ -101,14 +101,12 @@
     font-size: 15px;
 }
 
-.application.monster-maker .mm-dropdown-option:hover {
-    background: var(--color-cool-4, #475a86);
-    color: var(--color-light-1, #ffffff);
+.mm-dropdown-option:hover {
+    background: color-mix(in oklab, currentColor 15%, transparent);
 }
 
-.application.monster-maker .mm-dropdown-option.selected {
-    background: var(--color-cool-3, #5685cf);
-    color: var(--color-light-1, #ffffff);
+.mm-dropdown-option.selected {
+    background: color-mix(in oklab, currentColor 25%, transparent);
     font-weight: bold;
 }
 
