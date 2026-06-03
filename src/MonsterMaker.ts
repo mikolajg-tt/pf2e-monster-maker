@@ -77,6 +77,7 @@ export class MonsterMaker extends HandlebarsApplicationMixin(ApplicationV2) {
                 header.closest(".monster-maker-category")?.classList.toggle("collapsed");
             });
         });
+        requestAnimationFrame(() => this._applyHeaderContrast(element));
 
         const getSelect = (suffix: string) =>
             document.getElementById(`monsterMaker${suffix}`) as HTMLSelectElement | null;
@@ -379,6 +380,60 @@ export class MonsterMaker extends HandlebarsApplicationMixin(ApplicationV2) {
         return super["_onClose"]?.(_options);
     }
 
+    _applyHeaderContrast(element: HTMLElement) {
+        const parseRgb = (value: string): number[] | null => {
+            const m = value.match(/rgba?\(([^)]+)\)/i);
+            if (!m) return null;
+            const p = m[1].split(/[,\s/]+/).map(parseFloat).filter(n => !Number.isNaN(n));
+            return p.length >= 3 ? p : null;
+        };
+        const relLum = (rgb: number[]): number => {
+            const a = rgb.slice(0, 3).map(v => {
+                const c = v / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+        };
+        const contrast = (a: number[], b: number[]): number => {
+            const hi = Math.max(relLum(a), relLum(b));
+            const lo = Math.min(relLum(a), relLum(b));
+            return (hi + 0.05) / (lo + 0.05);
+        };
+
+        const modal = element.closest<HTMLElement>(".application");
+        const resolveBg = (start: HTMLElement): number[] => {
+            let el: HTMLElement | null = start;
+            while (el) {
+                const rgb = parseRgb(getComputedStyle(el).backgroundColor);
+                if (rgb && (rgb[3] === undefined || rgb[3] >= 0.5)) return rgb.slice(0, 3);
+                if (el === modal) break;
+                el = el.parentElement;
+            }
+            const themed = start.closest(".theme-dark, .theme-light") ?? document.body;
+            if (themed.classList.contains("theme-dark")) return [30, 33, 40];
+            if (themed.classList.contains("theme-light")) return [235, 226, 207];
+            const t = parseRgb(getComputedStyle(modal ?? start).color) ?? [0, 0, 0];
+            const textIsLight = (0.299 * t[0] + 0.587 * t[1] + 0.114 * t[2]) / 255 > 0.5;
+            return textIsLight ? [30, 33, 40] : [235, 226, 207];
+        };
+
+        const TARGET = 4.5;
+        element.querySelectorAll<HTMLElement>(".monster-maker-category-header").forEach(header => {
+            header.style.removeProperty("color");
+            const fg = parseRgb(getComputedStyle(header).color);
+            if (!fg) return;
+            const bg = resolveBg(header);
+            if (contrast(fg, bg) >= TARGET) return;
+            const towards = relLum(bg) > 0.5 ? [0, 0, 0] : [255, 255, 255];
+            let chosen = towards;
+            for (let t = 0.15; t < 1; t += 0.15) {
+                const mixed = fg.slice(0, 3).map((c, i) => Math.round(c + (towards[i] - c) * t));
+                if (contrast(mixed, bg) >= TARGET) { chosen = mixed; break; }
+            }
+            header.style.color = `rgb(${chosen[0]}, ${chosen[1]}, ${chosen[2]})`;
+        });
+    }
+
     static _wrapSelect(select: HTMLSelectElement) {
         select.classList.add("mm-dropdown-trigger");
         select.setAttribute("aria-haspopup", "listbox");
@@ -418,17 +473,51 @@ export class MonsterMaker extends HandlebarsApplicationMixin(ApplicationV2) {
         let rafId = 0;
         let outsideHandler: ((e: Event) => void) | null = null;
         let keyHandler: ((e: KeyboardEvent) => void) | null = null;
+        let originLeft = 0;
+        let originTop = 0;
+
+        const parseRgb = (value: string): number[] | null => {
+            const match = value.match(/rgba?\(([^)]+)\)/i);
+            if (!match) return null;
+            const parts = match[1].split(/[,\s/]+/).map(parseFloat).filter(n => !Number.isNaN(n));
+            return parts.length >= 3 ? parts : null;
+        };
+
+        const applyColors = () => {
+            const modal = select.closest<HTMLElement>(".application");
+            const textHost = modal?.querySelector<HTMLElement>(".window-content") ?? modal ?? select;
+            const textColor = getComputedStyle(textHost).color;
+            popup.style.color = textColor;
+
+            let baseRgb: number[] | null = null;
+            let el: HTMLElement | null = modal;
+            while (el && el !== document.body && el !== document.documentElement) {
+                const rgb = parseRgb(getComputedStyle(el).backgroundColor);
+                if (rgb && (rgb[3] === undefined || rgb[3] >= 0.5)) { baseRgb = rgb; break; }
+                el = el.parentElement;
+            }
+
+            if (!baseRgb) {
+                const t = parseRgb(textColor) ?? [0, 0, 0];
+                const textIsLight = (0.299 * t[0] + 0.587 * t[1] + 0.114 * t[2]) / 255 > 0.5;
+                baseRgb = textIsLight ? [38, 42, 50] : [233, 224, 205];
+            }
+
+            const f = 0.9;
+            popup.style.background =
+                `rgb(${Math.round(baseRgb[0] * f)}, ${Math.round(baseRgb[1] * f)}, ${Math.round(baseRgb[2] * f)})`;
+        };
 
         const reposition = () => {
             const rect = select.getBoundingClientRect();
-            popup.style.left = `${rect.left}px`;
+            popup.style.left = `${rect.left - originLeft}px`;
             popup.style.minWidth = `${rect.width}px`;
             const popupHeight = popup.offsetHeight;
             const spaceBelow = window.innerHeight - rect.bottom;
             if (spaceBelow < popupHeight && rect.top > popupHeight) {
-                popup.style.top = `${rect.top - popupHeight}px`;
+                popup.style.top = `${rect.top - popupHeight - originTop}px`;
             } else {
-                popup.style.top = `${rect.bottom}px`;
+                popup.style.top = `${rect.bottom - originTop}px`;
             }
         };
 
@@ -443,6 +532,12 @@ export class MonsterMaker extends HandlebarsApplicationMixin(ApplicationV2) {
             buildOptions();
             const host = select.closest(".application") ?? document.body;
             host.appendChild(popup);
+            applyColors();
+            popup.style.left = "0px";
+            popup.style.top = "0px";
+            const probe = popup.getBoundingClientRect();
+            originLeft = probe.left;
+            originTop = probe.top;
             isOpen = true;
             select.setAttribute("aria-expanded", "true");
             reposition();
